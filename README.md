@@ -1,4 +1,7 @@
 # WindKit
+
+[![npm version](https://img.shields.io/npm/v/windkit.svg)](https://www.npmjs.com/package/windkit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 A protocol to connect Vexanium DApps to the Wind wallet.
 
 ## Features
