@@ -1,6 +1,6 @@
 {
   "name": "windkit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A protocol for connecting Vexanium DApps to the Wind wallet, enabling secure communication and transaction signing.",
   "repository": {
     "type": "git",

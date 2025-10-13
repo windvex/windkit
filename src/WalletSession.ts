@@ -50,7 +50,6 @@ export class WalletSession {
     this.#connection = connection
     this.#callbacks = new Map()
 
-    // peerjs types: (data: unknown) => void
     connection.on('data', (data: unknown) => this.#onDataReceived(data))
     connection.on('close', () => this.#closeListener?.())
     connection.on('error', (error) => this.#errorListener?.(error))
@@ -176,7 +175,6 @@ export class WalletSession {
     })
   }
 
-  // menerima unknown, lakukan narrowing di dalam
   #onDataReceived(data: unknown) {
     if (!data || typeof data !== 'object') return
     const maybe = data as { id?: string }
