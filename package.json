@@ -1,6 +1,6 @@
 {
   "name": "windkit",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Lightweight protocol to connect Vexanium DApps to Wind Wallet via PeerJS and VSR.",
   "license": "MIT",
   "author": "windstack",
