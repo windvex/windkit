@@ -7,39 +7,46 @@ WindKit is a lightweight WebRTC protocol for connecting Vexanium DApps to Wind W
 
 It enables secure cross-device login and transaction signing without requiring browser extensions.
 
+Designed for production environments, including low-RAM mobile devices.
+
 ---
 
-## Features
+## ✨ Features
 
 - Cross-device login via VSR (Vexanium Signing Request)
 - Transaction signing (single action, multiple actions, or full transaction)
-- Optional broadcast (sign-only or broadcast)
+- Optional broadcast control (sign-only or broadcast)
 - Message signing
 - Shared secret derivation (ECDH)
-- Session persistence via sessionStorage
-- Lightweight keepalive (low memory footprint)
-- Pure ESM module
+- Session persistence via `sessionStorage`
+- Low-memory heartbeat strategy
+- Pure ESM module (JavaScript-only)
 
 ---
 
-## Installation
+## 📦 Installation
 
+```bash
 npm install windkit
+```
 
-WindKit is ESM-only.
+WindKit is **ESM-only**.
 
-Your project must use:
+Your project must include:
 
+```json
 {
   "type": "module"
 }
+```
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Create Connector
 
+```js
 import { WindConnector } from "windkit";
 
 const connector = new WindConnector();
@@ -49,29 +56,37 @@ connector.on("session", (session, proof) => {
 });
 
 await connector.connect();
+```
 
-By default, WindKit relies on PeerJS default signaling behavior (no host/port/path/secure configured).
+By default, WindKit uses PeerJS default signaling.
 
 ---
 
-### Use Your Own PeerJS Server (Optional)
+## 🌐 Custom PeerJS Server (Optional)
 
+```js
 connector.setServer("peer.yourdomain.com", 443, "/", true);
+```
 
 Signature:
 
-setServer(host, port, path, secure)
+```js
+setServer(host, port, path, secure);
+```
 
-Add custom STUN/TURN server:
+Add custom ICE server:
 
+```js
 connector.addIceServer({
   urls: "stun:stun.cloudflare.com:3478"
 });
+```
 
 ---
 
-## Login Flow (VSR)
+## 🔐 Login Flow (VSR)
 
+```js
 const vsr = connector.createLoginRequest(
   "My Vexanium DApp",
   "https://example.com/icon.png"
@@ -83,20 +98,21 @@ window.open(
   `https://wallet.windcrypto.com/login?vsr=${encodeURIComponent(payload)}`,
   "Wind Wallet"
 );
+```
 
 Wallet flow:
 
 1. Decode VSR  
 2. Connect to embedded PeerID  
-3. Send LOGIN_OK  
+3. Send `LOGIN_OK`  
 4. Emit session  
 
 ---
 
-## Session Handling
+## 🔄 Session Handling
 
+```js
 connector.on("session", (session, proof) => {
-
   session.onClose(() => {
     console.log("Wallet disconnected");
   });
@@ -107,13 +123,15 @@ connector.on("session", (session, proof) => {
 
   window.appSession = session;
 });
+```
 
 ---
 
-## Send Transaction
+## ✍️ Send Transaction
 
 ### With ABI Cache (Recommended)
 
+```js
 import { Action } from "@wharfkit/antelope";
 import { ABICache } from "@wharfkit/abicache";
 
@@ -130,7 +148,7 @@ const action = Action.from(
       from: "alice",
       to: "bob",
       quantity: "1.0000 VEX",
-      memo: "test"
+      memo: "WindKit test"
     },
     authorization: [appSession.permissionLevel]
   },
@@ -140,119 +158,145 @@ const action = Action.from(
 const result = await appSession.transact({ action });
 
 console.log(result.transaction_id ?? result.id);
+```
 
 ---
 
 ### Sign Only (No Broadcast)
 
+```js
 await appSession.transact(
   { action },
   { broadcast: false }
 );
+```
 
 ---
 
-## Sign Message
+## 📝 Sign Message
 
+```js
 const signature = await appSession.signMessage("Hello Wind!");
 console.log(signature.toString());
+```
 
 ---
 
-## Shared Secret (ECDH)
+## 🔑 Shared Secret (ECDH)
 
+```js
 import { PublicKey } from "@wharfkit/antelope";
 
 const pub = PublicKey.from("PUB_K1_...");
 const secret = await appSession.sharedSecret(pub);
 
 console.log(secret.toString());
+```
 
 ---
 
-## Session Storage
+## 💾 Session Storage
 
 WindKit stores session data in:
 
+```js
 sessionStorage["vex-session"]
+```
 
 Example structure:
 
+```json
 {
   "peerID": "VEX-xxxx",
   "permission": "account@active",
   "expiration": "2026-03-01T12:00:00",
   "auth": "base64u_identity_proof"
 }
+```
 
-To clear session manually:
+Clear session manually:
 
+```js
 import { clearSession } from "windkit";
 
 clearSession();
+```
 
 ---
 
-## Architecture
+## 🏗 Architecture
 
-WindConnector
+### WindConnector
+
 - Creates VSR identity login
 - Hosts PeerJS PeerID (DApp-side)
 - Waits for wallet connection
 - Emits session
 
-WalletSession
+### WalletSession
+
 - Sends:
-  - signRequest
-  - signMessage
-  - sharedSecret
+  - `signRequest`
+  - `signMessage`
+  - `sharedSecret`
 - Routes replies via request IDs
-- Lightweight keepalive ping
+- Lightweight heartbeat ping
 - Handles account change events
 
 ---
 
-## Protocol Notes
+## 🔎 Protocol Notes
 
-Transaction signing method name:
-"signRequest"
+Transaction signing method:
+
+```
+signRequest
+```
 
 Wallet push events handled:
+
+```
 LOGIN_OK
 ACTIVE_ACCOUNT_CHANGED
+```
 
-All communication occurs via PeerJS DataConnection.
+All communication occurs over PeerJS `DataConnection`.
 
 ---
 
-## Technical Details
+## ⚙ Technical Details
 
-Chain ID is fixed internally via:
+Chain ID is internally fixed via:
+
+```js
 WalletSession.ChainID
+```
 
-Uses:
-- @wharfkit/signing-request
-- @wharfkit/antelope
-- peerjs
-- pako (zlib compression)
+Dependencies:
 
-Designed for:
+- `@wharfkit/signing-request`
+- `@wharfkit/antelope`
+- `peerjs`
+- `pako`
+
+Optimized for:
+
 - Low-RAM mobile devices
-- Background tabs
-- Unstable WebRTC environments
+- Background browser tabs
+- Unstable WebRTC networks
 
 ---
 
-## Security Model
+## 🔐 Security Model
 
 - IdentityProof can be verified by the DApp (recommended).
 - Private keys never leave the wallet.
 - VSR ensures transaction integrity.
-- PeerID is embedded inside VSR to prevent misrouting.
+- PeerID is embedded inside the VSR payload to prevent misrouting.
 
 ---
 
-## License
+## 📄 License
 
 MIT License  
 © Wind Stack
